@@ -71,3 +71,22 @@ body {
     text-align: left;
     margin-top: 10px;
 }
+
+#quiz-end-area {
+    margin-top: 20px;
+}
+
+#restart-button {
+    padding: 10px 20px;
+    font-size: 1.2em;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#restart-button:hover {
+    background-color: #0056b3;
+}

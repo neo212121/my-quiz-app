@@ -5,23 +5,21 @@ const resultArea = document.getElementById('result-area');
 const resultMessage = document.getElementById('result-message');
 const explanationText = document.getElementById('explanation-text');
 const nextButton = document.getElementById('next-button');
+const quizEndArea = document.getElementById('quiz-end-area');
+const restartButton = document.getElementById('restart-button');
 
 let allQuestions = [];
 let currentQuestionIndex = 0;
 let randomQuestions = [];
 
-// 수정된 코드 시작
 fetch('allQZ.csv')
-    .then(response => response.arrayBuffer()) // 파일을 텍스트 대신 바이너리 데이터로 가져옵니다.
+    .then(response => response.arrayBuffer())
     .then(buffer => {
-        // TextDecoder를 사용하여 바이너리 데이터를 UTF-8 텍스트로 변환합니다.
         const decoder = new TextDecoder('utf-8');
         const data = decoder.decode(buffer);
         
-        // CSV 데이터 파싱
         allQuestions = data.split('\n').map(row => {
             const cells = row.split(',');
-            // CSV 파일의 마지막 줄에 빈 줄이 있을 수 있으므로, 유효한 데이터만 처리합니다.
             if (cells[1] && cells[2]) {
                  return {
                     question: cells[1].trim(),
@@ -37,9 +35,8 @@ fetch('allQZ.csv')
                 };
             }
             return null;
-        }).filter(item => item !== null); // null 값(빈 줄) 제거
+        }).filter(item => item !== null);
 
-        // 첫 번째 헤더 행은 문제 데이터가 아니므로 제거
         if (allQuestions.length > 0 && allQuestions[0].question === "문제") {
             allQuestions.shift();
         }
@@ -47,7 +44,6 @@ fetch('allQZ.csv')
         startQuiz();
     });
 
-// (아래의 startQuiz, showQuestion, checkAnswer, nextButton 이벤트 리스너 코드는 그대로 유지)
 function startQuiz() {
     const shuffledQuestions = allQuestions.sort(() => 0.5 - Math.random());
     randomQuestions = shuffledQuestions.slice(0, 10);
@@ -90,7 +86,14 @@ nextButton.addEventListener('click', () => {
     if (currentQuestionIndex < randomQuestions.length) {
         showQuestion();
     } else {
-        alert('퀴즈 10문제가 모두 끝났습니다! 다시 시작할게요.');
-        startQuiz();
+        quizArea.classList.add('hidden');
+        resultArea.classList.add('hidden');
+        quizEndArea.classList.remove('hidden');
     }
+});
+
+restartButton.addEventListener('click', () => {
+    quizArea.classList.remove('hidden');
+    quizEndArea.classList.add('hidden');
+    startQuiz();
 });
