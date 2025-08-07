@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>5지선다 퀴즈 앱</title>
+    <title>상수도 관망시설 운영관리사 문제</title>
     <!-- React and ReactDOM from CDN -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
@@ -89,7 +89,12 @@
             margin-bottom: 20px;
             transition: color 0.3s ease;
         }
-        .next-btn {
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .nav-btn {
             background-color: #3498db;
             color: white;
             border: none;
@@ -100,7 +105,11 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             transition: background-color 0.3s ease, transform 0.2s ease;
         }
-        .next-btn:hover {
+        .nav-btn.disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        .nav-btn:hover:not(.disabled) {
             background-color: #2980b9;
             transform: translateY(-2px);
         }
@@ -113,6 +122,15 @@
             color: #4a4a4a;
             font-size: 1.2rem;
             margin-top: 10px;
+        }
+        .explanation {
+            background-color: #f0f4f7;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+            text-align: left;
+            color: #555;
         }
     </style>
 </head>
@@ -127,10 +145,8 @@
             const [allQuestions, setAllQuestions] = useState([]);
             const [randomQuestions, setRandomQuestions] = useState([]);
             const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-            const [correctAnswers, setCorrectAnswers] = useState(0);
-            const [quizState, setQuizState] = useState('loading'); // 'loading', 'in-progress', 'showing-result', 'finished'
-            const [selectedAnswer, setSelectedAnswer] = useState(null);
-            const [isCorrect, setIsCorrect] = useState(null);
+            const [userAnswers, setUserAnswers] = useState([]); // 사용자가 선택한 답을 저장하는 배열
+            const [quizState, setQuizState] = useState('loading'); // 'loading', 'in-progress', 'finished'
 
             useEffect(() => {
                 fetch('allQZ.csv')
@@ -161,11 +177,7 @@
                                 };
                             }
                             return null;
-                        }).filter(item => item !== null && item.question);
-
-                        if (parsedQuestions.length > 0 && parsedQuestions[0].question === "문제") {
-                            parsedQuestions.shift();
-                        }
+                        }).filter(item => item !== null && item.question && item.question !== '문제');
 
                         if (parsedQuestions.length < 10) {
                             setQuizState('error');
@@ -181,33 +193,29 @@
                     });
             }, []);
 
+            // 퀴즈를 시작하거나 재시작하는 함수
             const startQuiz = (questions) => {
                 const shuffledQuestions = questions.sort(() => 0.5 - Math.random());
                 setRandomQuestions(shuffledQuestions.slice(0, 10));
                 setCurrentQuestionIndex(0);
-                setCorrectAnswers(0);
+                setUserAnswers(Array(10).fill(null)); // 10개의 문제에 대한 답을 null로 초기화
                 setQuizState('in-progress');
-                setSelectedAnswer(null);
-                setIsCorrect(null);
             };
 
-            const handleAnswerClick = (index) => {
-                if (selectedAnswer !== null) return;
-
-                const currentQuestion = randomQuestions[currentQuestionIndex];
-                const userIsCorrect = (index + 1).toString().trim() === currentQuestion.answer.trim();
-                
-                setSelectedAnswer(index);
-                setIsCorrect(userIsCorrect);
-
-                if (userIsCorrect) {
-                    setCorrectAnswers(prev => prev + 1);
+            // 사용자가 답을 선택했을 때 호출되는 함수
+            const handleAnswerClick = (optionIndex) => {
+                // 이미 답을 선택했으면 더 이상 처리하지 않음
+                if (userAnswers[currentQuestionIndex] !== null) {
+                    return;
                 }
+
+                const newUserAnswers = [...userAnswers];
+                newUserAnswers[currentQuestionIndex] = optionIndex;
+                setUserAnswers(newUserAnswers);
             };
 
+            // 다음 문제로 넘어가는 함수
             const handleNextQuestion = () => {
-                setSelectedAnswer(null);
-                setIsCorrect(null);
                 const nextIndex = currentQuestionIndex + 1;
                 if (nextIndex < randomQuestions.length) {
                     setCurrentQuestionIndex(nextIndex);
@@ -216,12 +224,37 @@
                 }
             };
 
+            // 이전 문제로 돌아가는 함수
+            const handlePrevQuestion = () => {
+                const prevIndex = currentQuestionIndex - 1;
+                if (prevIndex >= 0) {
+                    setCurrentQuestionIndex(prevIndex);
+                }
+            };
+
+            // 퀴즈 재시작 함수
             const handleRestartQuiz = () => {
                 startQuiz(allQuestions);
             };
-
+            
+            // 현재 문제의 정보를 가져옴
             const currentQuestion = randomQuestions[currentQuestionIndex];
+            const selectedAnswerIndex = userAnswers[currentQuestionIndex];
+            const isAnswered = selectedAnswerIndex !== null;
 
+            // 정답 개수를 동적으로 계산
+            const correctAnswersCount = randomQuestions.reduce((count, question, index) => {
+                if (userAnswers[index] !== null) {
+                    const selectedOptionText = question.options[userAnswers[index]];
+                    // CSV 파일의 정답은 '1', '2', '3', '4', '5' 와 같은 형태이므로 이를 선택한 옵션 인덱스와 비교
+                    if ((userAnswers[index] + 1).toString() === question.answer) {
+                        return count + 1;
+                    }
+                }
+                return count;
+            }, 0);
+
+            // 로딩 상태
             if (quizState === 'loading') {
                 return (
                     <div className="quiz-container">
@@ -229,7 +262,8 @@
                     </div>
                 );
             }
-
+            
+            // 오류 상태
             if (quizState === 'error') {
                 return (
                     <div className="quiz-container">
@@ -239,17 +273,18 @@
                 );
             }
 
+            // 퀴즈 완료 상태
             if (quizState === 'finished') {
                 const totalQuestions = randomQuestions.length;
-                const accuracy = ((correctAnswers / totalQuestions) * 100).toFixed(1);
+                const accuracy = ((correctAnswersCount / totalQuestions) * 100).toFixed(1);
                 return (
                     <div className="quiz-container">
                         <h1>퀴즈가 모두 끝났습니다!</h1>
-                        <p className="result-text">총 <span style={{color: '#27ae60', fontWeight: 'bold'}}>{totalQuestions}</span> 문제 중 <span style={{color: '#27ae60', fontWeight: 'bold'}}>{correctAnswers}</span> 문제를 맞혔습니다.</p>
+                        <p className="result-text">총 <span style={{color: '#27ae60', fontWeight: 'bold'}}>{totalQuestions}</span> 문제 중 <span style={{color: '#27ae60', fontWeight: 'bold'}}>{correctAnswersCount}</span> 문제를 맞혔습니다.</p>
                         <p className="result-text">정답률: <span style={{color: '#3498db', fontWeight: 'bold'}}>{accuracy}%</span></p>
                         <button
                             onClick={handleRestartQuiz}
-                            className="next-btn"
+                            className="nav-btn"
                             style={{display: 'block', margin: '20px auto'}}
                         >
                             다시 풀기
@@ -258,49 +293,52 @@
                 );
             }
 
+            // 퀴즈 진행 상태
             return (
                 <div className="quiz-container">
-                    <h1>지식 퀴즈</h1>
-                    <div className="question">{currentQuestion?.question}</div>
+                    <h1>상수도 관망시설 운영관리사 문제</h1>
+                    <div className="question">{`Q${currentQuestionIndex + 1}. ${currentQuestion?.question}`}</div>
                     <div className="options-container">
                         {currentQuestion?.options.map((option, index) => (
                             <button
                                 key={index}
                                 onClick={() => handleAnswerClick(index)}
-                                className={`option-btn ${selectedAnswer !== null ? (index + 1).toString().trim() === currentQuestion.answer.trim() ? 'correct' : (selectedAnswer === index ? 'incorrect' : '') : ''} ${selectedAnswer !== null ? 'disabled' : ''}`}
-                                disabled={selectedAnswer !== null}
+                                className={`option-btn ${isAnswered ? ((index + 1).toString() === currentQuestion.answer.trim() ? 'correct' : (selectedAnswerIndex === index ? 'incorrect' : '')) : ''} ${isAnswered ? 'disabled' : ''}`}
+                                disabled={isAnswered}
                             >
                                 {option}
                             </button>
                         ))}
                     </div>
 
-                    {selectedAnswer !== null && (
+                    {isAnswered && (
                         <>
-                            <div className="message" style={{color: isCorrect ? '#27ae60' : '#e74c3c'}}>
-                                {isCorrect ? "정답입니다! 🎉" : "오답입니다. 😞"}
+                            <div className="message" style={{color: (selectedAnswerIndex + 1).toString().trim() === currentQuestion.answer.trim() ? '#27ae60' : '#e74c3c'}}>
+                                {(selectedAnswerIndex + 1).toString().trim() === currentQuestion.answer.trim() ? "정답입니다! 🎉" : "오답입니다. 😞"}
                             </div>
-                            <div className="explanation" style={{
-                                backgroundColor: '#f0f4f7',
-                                border: '2px solid #ddd',
-                                borderRadius: '8px',
-                                padding: '15px',
-                                marginTop: '10px',
-                                textAlign: 'left',
-                                color: '#555'
-                            }}>
+                            <div className="explanation">
                                 <h3 style={{fontSize: '1.2rem', marginBottom: '10px', color: '#333'}}>해설:</h3>
                                 <p>{currentQuestion.explanation}</p>
                             </div>
-                            <button
-                                onClick={handleNextQuestion}
-                                className="next-btn"
-                                style={{display: 'block', marginTop: '20px'}}
-                            >
-                                다음 문제
-                            </button>
                         </>
                     )}
+
+                    <div className="nav-buttons">
+                        <button
+                            onClick={handlePrevQuestion}
+                            className={`nav-btn ${currentQuestionIndex === 0 ? 'disabled' : ''}`}
+                            disabled={currentQuestionIndex === 0}
+                        >
+                            이전 문제
+                        </button>
+                        <button
+                            onClick={handleNextQuestion}
+                            className={`nav-btn ${!isAnswered ? 'disabled' : ''}`}
+                            disabled={!isAnswered}
+                        >
+                            {currentQuestionIndex < randomQuestions.length - 1 ? '다음 문제' : '결과 보기'}
+                        </button>
+                    </div>
                 </div>
             );
         };
