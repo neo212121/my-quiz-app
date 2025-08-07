@@ -20,25 +20,33 @@ fetch('allQZ.csv')
         
         allQuestions = data.split('\n').map(row => {
             const cells = row.split(',');
-            if (cells[1] && cells[2]) {
+            // CSV 파일의 줄이 9개 이상(B셀~I셀)일 때만 처리
+            if (cells.length >= 9) {
                  return {
-                    question: cells[1].trim(),
+                    question: cells[1] ? cells[1].trim() : '',
                     options: [
-                        cells[2].trim(), 
-                        cells[3].trim(), 
-                        cells[4].trim(), 
-                        cells[5].trim(), 
-                        cells[6].trim()
+                        cells[2] ? cells[2].trim() : '', 
+                        cells[3] ? cells[3].trim() : '', 
+                        cells[4] ? cells[4].trim() : '', 
+                        cells[5] ? cells[5].trim() : '', 
+                        cells[6] ? cells[6].trim() : ''
                     ],
-                    answer: cells[7].trim(),
+                    answer: cells[7] ? cells[7].trim() : '',
                     explanation: cells[8] ? cells[8].trim() : ''
                 };
             }
             return null;
         }).filter(item => item !== null);
 
+        // 첫 번째 헤더 행은 문제 데이터가 아니므로 제거
         if (allQuestions.length > 0 && allQuestions[0].question === "문제") {
             allQuestions.shift();
+        }
+
+        // 유효한 문제가 없을 경우를 대비한 예외 처리
+        if (allQuestions.length === 0) {
+            questionText.textContent = "퀴즈 데이터를 불러오지 못했습니다. CSV 파일을 확인해주세요.";
+            return;
         }
 
         startQuiz();
@@ -53,6 +61,11 @@ function startQuiz() {
 
 function showQuestion() {
     const currentQuestion = randomQuestions[currentQuestionIndex];
+    if (!currentQuestion) {
+        // 랜덤 문제가 부족한 경우의 예외 처리
+        questionText.textContent = "퀴즈 문제가 부족합니다. 엑셀 파일에 10개 이상의 문제가 있는지 확인해주세요.";
+        return;
+    }
     questionText.textContent = currentQuestion.question;
     optionsContainer.innerHTML = '';
     currentQuestion.options.forEach((option, index) => {
