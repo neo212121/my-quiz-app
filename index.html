@@ -295,13 +295,23 @@
                 setAiLoading(true);
                 setAiExplanation(null);
                 
-                const questionText = randomQuestions[currentQuestionIndex].question;
-                const explanationText = randomQuestions[currentQuestionIndex].explanation;
-                
-                // AI에게 보낼 프롬프트를 기존 해설을 바탕으로 더 자세히 설명해 달라고 수정
-                const prompt = `아래는 상수도 관망시설 운영관리사 퀴즈 문제와 정답에 대한 해설입니다. 이 해설을 바탕으로 학습에 도움이 될 수 있도록 더 자세하고 깊이 있는 설명을 제공해 주세요. 한글로 대답해 주세요.
-                                문제: ${questionText}
-                                정답 해설: ${explanationText}`;
+                const currentQuestion = randomQuestions[currentQuestionIndex];
+                const questionText = currentQuestion.question;
+                const optionsText = currentQuestion.options.map((opt, i) => `보기 ${i + 1}: ${opt}`).join('\n');
+                const explanationText = currentQuestion.explanation;
+
+                // AI에게 보낼 프롬프트를 보기에 대한 분석을 추가하도록 수정
+                const prompt = `아래는 상수도 관망시설 운영관리사 퀴즈 문제와 보기에 대한 정보입니다.
+                문제: ${questionText}
+                보기:
+                ${optionsText}
+                정답 해설: ${explanationText}
+
+                위 정보를 바탕으로 학습에 도움이 될 수 있도록 다음 내용을 포함하여 자세하고 깊이 있는 설명을 제공해 주세요.
+                1. 문제와 정답에 대한 상세 해설
+                2. 각 보기가 왜 정답이거나 오답인지에 대한 간략한 분석
+
+                한글로 대답해 주세요.`;
 
                 const chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
                 const payload = { contents: chatHistory };
@@ -472,7 +482,7 @@
                     {isAnswered && (
                         <>
                             <div className="message" style={{color: (selectedAnswerIndex + 1).toString().trim() === currentQuestion.answer.trim() ? '#27ae60' : '#e74c3c'}}>
-                                {(selectedAnswerIndex + 1).toString().trim() === currentQuestion.answer.trim() ? "정답입니다! 🎉" : "오답입니다. 😞"}
+                                {(selectedAnswerIndex + 1).toString().trim() === currentQuestion.answer.trim() ? "정답입니다! 🎉" : "오답입니다.  "}
                             </div>
                             <div className="explanation">
                                 <h3 style={{fontSize: '1.2rem', marginBottom: '10px', color: '#333'}}>해설:</h3>
