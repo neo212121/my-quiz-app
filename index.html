@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>랜덤 퀴즈</title>
+    <title>상수도관망시설 운영관리사 랜덤 퀴즈</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -12,8 +12,9 @@
         <h1>랜덤 퀴즈</h1>
         <div id="quiz-area">
             <h2 id="question-text">문제가 여기에 나타납니다.</h2>
-            <div id="options-container" class="options-grid">
-                </div>
+            <div id="options-container">
+                <!-- 보기 버튼이 여기에 자동으로 만들어집니다 -->
+            </div>
         </div>
 
         <div id="result-area" class="hidden">
@@ -25,8 +26,11 @@
             <button id="next-button">다음 문제</button>
         </div>
         
+        <!-- 퀴즈 종료 영역에 점수와 정답률을 표시할 요소를 추가했습니다 -->
         <div id="quiz-end-area" class="hidden">
-            <h2>퀴즈 10문제가 모두 끝났습니다!</h2>
+            <h2>퀴즈가 모두 끝났습니다!</h2>
+            <p>맞힌 문제: <span id="correct-count">0</span>개</p>
+            <p>정답률: <span id="accuracy-rate">0</span>%</p>
             <button id="restart-button">다시 풀기</button>
         </div>
     </div>

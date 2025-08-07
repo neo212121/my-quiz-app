@@ -29,7 +29,7 @@ h1 {
 }
 
 #question-text {
-    font-size: 1.5em;
+    font-size: 1.5em; /* 문제 글자 크기 */
     color: #34495e;
     min-height: 80px;
     margin: 30px 0;
@@ -37,7 +37,8 @@ h1 {
     font-weight: bold;
 }
 
-.options-grid {
+/* 퀴즈 보기 버튼들이 세로로 나열되도록 설정 */
+#options-container {
     display: flex;
     flex-direction: column;
     gap: 15px;
@@ -49,7 +50,7 @@ h1 {
     border: 1px solid #bdc3c7;
     border-radius: 8px;
     padding: 15px 20px;
-    font-size: 1.1em;
+    font-size: 1.2em; /* 보기 글자 크기를 문제와 비슷하게 키움 */
     cursor: pointer;
     transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
     text-align: left;
@@ -92,10 +93,12 @@ h1 {
     transition: color 0.3s;
 }
 
+/* 정답 메시지 색상을 녹색으로 설정 */
 #result-message.correct {
     color: #2ecc71;
 }
 
+/* 오답 메시지 색상을 붉은색으로 설정 */
 #result-message.incorrect {
     color: #e74c3c;
 }
@@ -130,4 +133,35 @@ h1 {
 
 #quiz-end-area {
     margin-top: 30px;
+}
+
+#quiz-end-area p {
+    font-size: 1.2em;
+    margin: 10px 0;
+}
+#quiz-end-area #correct-count {
+    color: #2ecc71;
+    font-weight: bold;
+}
+#quiz-end-area #accuracy-rate {
+    color: #3498db;
+    font-weight: bold;
+}
+
+/* 모바일 화면에 대한 반응형 디자인 */
+@media (max-width: 768px) {
+    .quiz-container {
+        padding: 20px;
+    }
+    h1 {
+        font-size: 1.8em;
+    }
+    #question-text {
+        font-size: 1.3em;
+        min-height: 60px;
+    }
+    .option-button {
+        font-size: 1em;
+        padding: 12px 15px;
+    }
 }
