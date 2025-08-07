@@ -252,7 +252,7 @@
                 setRandomQuestions(shuffledQuestions.slice(0, numberOfQuestions));
                 setCurrentQuestionIndex(0);
                 setUserAnswers(Array(numberOfQuestions).fill(null));
-                setAiExplanation(null);
+                setAiExplanation(null); // 퀴즈 시작 시 AI 설명 초기화
                 setQuizState('in-progress');
             };
 
@@ -267,7 +267,7 @@
 
             const handleNextQuestion = () => {
                 const nextIndex = currentQuestionIndex + 1;
-                setAiExplanation(null);
+                setAiExplanation(null); // 다음 문제로 이동 시 AI 설명 초기화
                 if (nextIndex < randomQuestions.length) {
                     setCurrentQuestionIndex(nextIndex);
                 } else {
@@ -277,7 +277,7 @@
 
             const handlePrevQuestion = () => {
                 const prevIndex = currentQuestionIndex - 1;
-                setAiExplanation(null);
+                setAiExplanation(null); // 이전 문제로 이동 시 AI 설명 초기화
                 if (prevIndex >= 0) {
                     setCurrentQuestionIndex(prevIndex);
                 }
@@ -290,7 +290,7 @@
             // Gemini API를 사용하여 문제 해설을 가져오는 함수
             const handleAiSearch = async () => {
                 setAiLoading(true);
-                setAiExplanation(null);
+                setAiExplanation(null); // 기존 AI 설명 초기화
                 const questionText = randomQuestions[currentQuestionIndex].question;
                 const prompt = `다음 퀴즈 문제에 대해 자세히 설명해 줘. 한글로 대답해 줘.
                                 문제: ${questionText}
@@ -312,20 +312,16 @@
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(payload)
                         });
-                        // 네트워크 응답이 성공적이지 않으면 오류를 던져 재시도를 유도
-                        if (!response.ok) {
-                            console.error(`API 요청 실패: 상태 코드 ${response.status}, 응답 텍스트: ${await response.text()}`);
-                            if (response.status === 429) {
-                                const delay = Math.pow(2, retryCount) * 1000;
-                                await new Promise(resolve => setTimeout(resolve, delay));
-                                retryCount++;
-                                continue;
-                            }
-                            throw new Error('API request failed');
+                        if (response.status === 429) {
+                            const delay = Math.pow(2, retryCount) * 1000;
+                            await new Promise(resolve => setTimeout(resolve, delay));
+                            retryCount++;
+                            continue;
                         }
+                        if (!response.ok) throw new Error('API request failed');
                         break;
                     } catch (error) {
-                        console.error('Fetch error during retry:', error);
+                        console.error('Fetch error:', error);
                         const delay = Math.pow(2, retryCount) * 1000;
                         await new Promise(resolve => setTimeout(resolve, delay));
                         retryCount++;
@@ -340,13 +336,12 @@
 
                 try {
                     const result = await response.json();
-                    if (result && result.candidates && result.candidates.length > 0 &&
+                    if (result.candidates && result.candidates.length > 0 &&
                         result.candidates[0].content && result.candidates[0].content.parts &&
                         result.candidates[0].content.parts.length > 0) {
                         const text = result.candidates[0].content.parts[0].text;
                         setAiExplanation(text);
                     } else {
-                        console.error('Unexpected API response structure:', result);
                         setAiExplanation("AI가 해설을 생성하지 못했습니다.");
                     }
                 } catch (error) {
@@ -456,7 +451,7 @@
                     {isAnswered && (
                         <>
                             <div className="message" style={{color: (selectedAnswerIndex + 1).toString().trim() === currentQuestion.answer.trim() ? '#27ae60' : '#e74c3c'}}>
-                                {(selectedAnswerIndex + 1).toString().trim() === currentQuestion.answer.trim() ? "정답입니다! 🎉" : "오답입니다.  "}
+                                {(selectedAnswerIndex + 1).toString().trim() === currentQuestion.answer.trim() ? "정답입니다! 🎉" : "오답입니다. 😞"}
                             </div>
                             <div className="explanation">
                                 <h3 style={{fontSize: '1.2rem', marginBottom: '10px', color: '#333'}}>해설:</h3>
