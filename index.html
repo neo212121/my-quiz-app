@@ -296,7 +296,7 @@
                 const explanationText = randomQuestions[currentQuestionIndex].explanation;
                 
                 // AI에게 보낼 프롬프트를 기존 해설을 바탕으로 더 자세히 설명해 달라고 수정
-                const prompt = `아래는 퀴즈 문제와 정답에 대한 해설입니다. 이 해설을 바탕으로 더 자세하고 깊이 있는 설명을 제공해 주세요. 한글로 대답해 주세요.
+                const prompt = `아래는 상수도 관망시설 운영관리사 퀴즈 문제와 정답에 대한 해설입니다. 이 해설을 바탕으로 학습에 도움이 될 수 있도록 더 자세하고 깊이 있는 설명을 제공해 주세요. 한글로 대답해 주세요.
                                 문제: ${questionText}
                                 정답 해설: ${explanationText}`;
 
@@ -308,6 +308,7 @@
                 const maxRetries = 5;
                 let retryCount = 0;
                 let response;
+                let finalError = null;
 
                 while (retryCount < maxRetries) {
                     try {
@@ -320,19 +321,24 @@
                             break;
                         }
                         
-                        const errorText = await response.text();
-                        console.error(`API 요청 실패 (재시도 ${retryCount + 1}/${maxRetries}): 상태 코드 ${response.status}, 응답 텍스트: ${errorText}`);
+                        // API가 성공적으로 응답했지만 오류 코드를 반환한 경우
+                        const errorResponse = await response.json().catch(() => ({ error: { message: `API responded with status ${response.status} but no JSON body.` } }));
+                        const errorMessage = errorResponse.error?.message || `API error with status: ${response.status}`;
                         
-                        if (response.status === 429) {
+                        console.error(`API 요청 실패 (재시도 ${retryCount + 1}/${maxRetries}): ${errorMessage}`);
+                        finalError = errorMessage;
+
+                        if (response.status === 429) { // Too Many Requests
                             const delay = Math.pow(2, retryCount) * 1000;
                             await new Promise(resolve => setTimeout(resolve, delay));
                             retryCount++;
                             continue;
                         }
-                        throw new Error(`API 요청 실패: 상태 코드 ${response.status}`);
+                        throw new Error(`API 요청 실패: ${errorMessage}`);
                         
                     } catch (error) {
                         console.error('Fetch error during retry:', error);
+                        finalError = error.message;
                         const delay = Math.pow(2, retryCount) * 1000;
                         await new Promise(resolve => setTimeout(resolve, delay));
                         retryCount++;
@@ -340,7 +346,7 @@
                 }
 
                 if (!response || !response.ok) {
-                    setAiExplanation("AI가 해설을 불러오는 데 실패했습니다. 네트워크 상태를 확인해주세요.");
+                    setAiExplanation(`AI가 해설을 불러오는 데 실패했습니다. 오류: ${finalError || "네트워크 오류"}`);
                     setAiLoading(false);
                     return;
                 }
