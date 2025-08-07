@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>랜덤 퀴즈</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="quiz-container">
+        <h1>랜덤 퀴즈</h1>
+        <div id="quiz-area">
+            <h2 id="question-text">문제가 여기에 나타납니다.</h2>
+            <div id="options-container" class="options-grid">
+                </div>
+        </div>
+
+        <div id="result-area" class="hidden">
+            <p id="result-message"></p>
+            <div id="explanation-box">
+                <strong>해설:</strong>
+                <p id="explanation-text"></p>
+            </div>
+            <button id="next-button">다음 문제</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
