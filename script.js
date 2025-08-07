@@ -20,7 +20,6 @@ fetch('allQZ.csv')
         
         allQuestions = data.split('\n').map(row => {
             const cells = row.split(',');
-            // CSV 파일의 줄이 9개 이상(B셀~I셀)일 때만 처리
             if (cells.length >= 9) {
                  return {
                     question: cells[1] ? cells[1].trim() : '',
@@ -38,12 +37,10 @@ fetch('allQZ.csv')
             return null;
         }).filter(item => item !== null);
 
-        // 첫 번째 헤더 행은 문제 데이터가 아니므로 제거
         if (allQuestions.length > 0 && allQuestions[0].question === "문제") {
             allQuestions.shift();
         }
 
-        // 유효한 문제가 없을 경우를 대비한 예외 처리
         if (allQuestions.length === 0) {
             questionText.textContent = "퀴즈 데이터를 불러오지 못했습니다. CSV 파일을 확인해주세요.";
             return;
@@ -62,7 +59,6 @@ function startQuiz() {
 function showQuestion() {
     const currentQuestion = randomQuestions[currentQuestionIndex];
     if (!currentQuestion) {
-        // 랜덤 문제가 부족한 경우의 예외 처리
         questionText.textContent = "퀴즈 문제가 부족합니다. 엑셀 파일에 10개 이상의 문제가 있는지 확인해주세요.";
         return;
     }
@@ -70,12 +66,18 @@ function showQuestion() {
     optionsContainer.innerHTML = '';
     currentQuestion.options.forEach((option, index) => {
         const optionButton = document.createElement('button');
-        optionButton.textContent = option;
+        
+        // 보기 앞에 1, 2, 3, 4, 5 번호 추가
+        optionButton.textContent = `${index + 1}. ${option}`;
+        
         optionButton.classList.add('option-button');
         optionButton.addEventListener('click', () => checkAnswer(optionButton, index + 1, currentQuestion));
         optionsContainer.appendChild(optionButton);
     });
     resultArea.classList.add('hidden');
+    
+    // 메시지 색상 초기화
+    resultMessage.classList.remove('correct', 'incorrect');
 }
 
 function checkAnswer(selectedButton, selectedOptionIndex, question) {
@@ -86,9 +88,11 @@ function checkAnswer(selectedButton, selectedOptionIndex, question) {
     if (isCorrect) {
         selectedButton.classList.add('correct');
         resultMessage.textContent = '정답입니다! 🎉';
+        resultMessage.classList.add('correct'); // 정답일 경우 녹색으로
     } else {
         selectedButton.classList.add('incorrect');
         resultMessage.textContent = '아쉽게도 틀렸습니다. 😞';
+        resultMessage.classList.add('incorrect'); // 오답일 경우 붉은색으로
     }
     explanationText.textContent = question.explanation;
     resultArea.classList.remove('hidden');

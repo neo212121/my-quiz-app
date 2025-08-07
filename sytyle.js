@@ -98,6 +98,15 @@ h1 {
     font-weight: bold;
 }
 
+/* 정답/오답 메시지 색상 추가 */
+#result-message.correct {
+    color: #28a745;
+}
+
+#result-message.incorrect {
+    color: #dc3545;
+}
+
 #next-button, #restart-button {
     padding: 12px 25px;
     font-size: 1.1em;
