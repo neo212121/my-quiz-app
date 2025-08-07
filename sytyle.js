@@ -37,15 +37,14 @@ h1 {
     line-height: 1.5;
 }
 
-/* 퀴즈 보기 레이아웃을 한 줄에 하나씩 보이도록 수정 */
 .options-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
     margin-top: 20px;
 }
 
+/* 각 보기 버튼을 한 줄씩 차지하도록 강제합니다. */
 .option-button {
+    display: block; /* 이 부분이 가장 중요합니다! */
+    width: 100%;
     background-color: #f8f9fa;
     border: 1px solid #ced4da;
     border-radius: 8px;
@@ -55,6 +54,7 @@ h1 {
     transition: background-color 0.3s, transform 0.2s;
     text-align: left;
     color: #495057;
+    margin-bottom: 12px; /* 버튼 사이에 여백을 줍니다. */
 }
 
 .option-button:hover {
@@ -98,7 +98,6 @@ h1 {
     font-weight: bold;
 }
 
-/* 정답/오답 메시지 색상 추가 */
 #result-message.correct {
     color: #28a745;
 }
