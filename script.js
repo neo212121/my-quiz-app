@@ -17,17 +17,17 @@ fetch('allQZ.csv')
     .then(buffer => {
         const decoder = new TextDecoder('utf-8');
         const data = decoder.decode(buffer);
-        
+
         allQuestions = data.split('\n').map(row => {
             const cells = row.split(',');
             if (cells.length >= 9) {
                  return {
                     question: cells[1] ? cells[1].trim() : '',
                     options: [
-                        cells[2] ? cells[2].trim() : '', 
-                        cells[3] ? cells[3].trim() : '', 
-                        cells[4] ? cells[4].trim() : '', 
-                        cells[5] ? cells[5].trim() : '', 
+                        cells[2] ? cells[2].trim() : '',
+                        cells[3] ? cells[3].trim() : '',
+                        cells[4] ? cells[4].trim() : '',
+                        cells[5] ? cells[5].trim() : '',
                         cells[6] ? cells[6].trim() : ''
                     ],
                     answer: cells[7] ? cells[7].trim() : '',
@@ -66,17 +66,12 @@ function showQuestion() {
     optionsContainer.innerHTML = '';
     currentQuestion.options.forEach((option, index) => {
         const optionButton = document.createElement('button');
-        
-        // 보기 앞에 1, 2, 3, 4, 5 번호 추가
         optionButton.textContent = `${index + 1}. ${option}`;
-        
         optionButton.classList.add('option-button');
         optionButton.addEventListener('click', () => checkAnswer(optionButton, index + 1, currentQuestion));
         optionsContainer.appendChild(optionButton);
     });
     resultArea.classList.add('hidden');
-    
-    // 메시지 색상 초기화
     resultMessage.classList.remove('correct', 'incorrect');
 }
 
@@ -85,14 +80,15 @@ function checkAnswer(selectedButton, selectedOptionIndex, question) {
     Array.from(optionsContainer.children).forEach(button => {
         button.disabled = true;
     });
+
     if (isCorrect) {
         selectedButton.classList.add('correct');
         resultMessage.textContent = '정답입니다! 🎉';
-        resultMessage.classList.add('correct'); // 정답일 경우 녹색으로
+        resultMessage.classList.add('correct');
     } else {
         selectedButton.classList.add('incorrect');
         resultMessage.textContent = '아쉽게도 틀렸습니다. 😞';
-        resultMessage.classList.add('incorrect'); // 오답일 경우 붉은색으로
+        resultMessage.classList.add('incorrect');
     }
     explanationText.textContent = question.explanation;
     resultArea.classList.remove('hidden');
