@@ -3,31 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>랜덤 퀴즈</title>
-    <!-- Tailwind CSS for styling -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>5지선다 퀴즈 앱</title>
     <!-- React and ReactDOM from CDN -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <!-- Babel for JSX compilation -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <!-- Lucide React Icons -->
-    <script src="https://unpkg.com/lucide-react@0.292.0"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
         body {
-            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f7f9fc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            margin: 0;
+            background-color: #e9f0f6;
             color: #333;
+            margin: 0;
+            padding: 20px;
         }
         .quiz-container {
-            width: 600px;
-            max-width: 90%;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        .quiz-container:hover {
+            transform: translateY(-5px);
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 2rem;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .question {
+            font-size: 1.5rem;
+            color: #4a4a4a;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+        .options-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .option-btn {
+            background-color: #f0f4f7;
+            border: 2px solid #ddd;
+            color: #555;
+            padding: 15px 20px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        .option-btn:hover:not(.disabled) {
+            background-color: #dceaf5;
+            transform: scale(1.02);
+            border-color: #a4c4de;
+        }
+        .option-btn.disabled {
+            cursor: not-allowed;
+        }
+        .option-btn.correct {
+            background-color: #27ae60;
+            color: white;
+            border-color: #27ae60;
+        }
+        .option-btn.incorrect {
+            background-color: #e74c3c;
+            color: white;
+            border-color: #e74c3c;
+        }
+        .message {
+            font-size: 1.3rem;
+            font-weight: bold;
+            min-height: 30px;
+            margin-bottom: 20px;
+            transition: color 0.3s ease;
+        }
+        .next-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        .next-btn:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+        .finished-text {
+            color: #2c3e50;
+            font-size: 2rem;
+            margin-top: 50px;
+        }
+        .result-text {
+            color: #4a4a4a;
+            font-size: 1.2rem;
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -37,7 +122,6 @@
     <!-- The React application code -->
     <script type="text/babel">
         const { useState, useEffect } = React;
-        const { Check, X } = lucideReact;
 
         const App = () => {
             const [allQuestions, setAllQuestions] = useState([]);
@@ -140,19 +224,17 @@
 
             if (quizState === 'loading') {
                 return (
-                    <div className="flex justify-center items-center h-screen bg-gray-100">
-                        <div className="text-xl font-semibold text-gray-700">퀴즈를 불러오는 중...</div>
+                    <div className="quiz-container">
+                        <div className="message">퀴즈를 불러오는 중...</div>
                     </div>
                 );
             }
 
             if (quizState === 'error') {
                 return (
-                    <div className="flex justify-center items-center h-screen bg-gray-100">
-                        <div className="p-8 bg-white rounded-lg shadow-md text-center">
-                            <h2 className="text-2xl font-bold text-red-500 mb-4">오류 발생!</h2>
-                            <p className="text-gray-600">퀴즈 데이터를 불러오지 못했거나 문제가 10개 미만입니다. CSV 파일을 확인해주세요.</p>
-                        </div>
+                    <div className="quiz-container">
+                        <div className="message" style={{color: '#e74c3c'}}>오류 발생!</div>
+                        <p className="result-text">퀴즈 데이터를 불러오지 못했거나 문제가 10개 미만입니다. CSV 파일을 확인해주세요.</p>
                     </div>
                 );
             }
@@ -161,83 +243,64 @@
                 const totalQuestions = randomQuestions.length;
                 const accuracy = ((correctAnswers / totalQuestions) * 100).toFixed(1);
                 return (
-                    <div className="flex justify-center items-center h-screen bg-gray-100">
-                        <div className="quiz-container max-w-lg mx-auto p-8 bg-white rounded-lg shadow-xl text-center">
-                            <h2 className="text-3xl font-bold text-blue-700 mb-6">퀴즈가 모두 끝났습니다!</h2>
-                            <p className="text-xl text-gray-700 mb-2">맞힌 문제: <span className="text-green-500 font-bold">{correctAnswers}</span>개</p>
-                            <p className="text-xl text-gray-700 mb-6">정답률: <span className="text-blue-500 font-bold">{accuracy}%</span></p>
-                            <button
-                                onClick={handleRestartQuiz}
-                                className="w-full py-3 px-6 bg-blue-600 text-white font-semibold rounded-full shadow-lg hover:bg-blue-700 transition-all duration-300"
-                            >
-                                다시 풀기
-                            </button>
-                        </div>
+                    <div className="quiz-container">
+                        <h1>퀴즈가 모두 끝났습니다!</h1>
+                        <p className="result-text">총 <span style={{color: '#27ae60', fontWeight: 'bold'}}>{totalQuestions}</span> 문제 중 <span style={{color: '#27ae60', fontWeight: 'bold'}}>{correctAnswers}</span> 문제를 맞혔습니다.</p>
+                        <p className="result-text">정답률: <span style={{color: '#3498db', fontWeight: 'bold'}}>{accuracy}%</span></p>
+                        <button
+                            onClick={handleRestartQuiz}
+                            className="next-btn"
+                            style={{display: 'block', margin: '20px auto'}}
+                        >
+                            다시 풀기
+                        </button>
                     </div>
                 );
             }
 
             return (
-                <div className="flex justify-center items-center h-screen bg-gray-100">
-                    <div className="quiz-container max-w-2xl mx-auto p-8 bg-white rounded-lg shadow-xl border border-gray-200">
-                        <h1 className="text-3xl font-bold text-blue-800 mb-6 pb-2 border-b-2 border-blue-500 inline-block">랜덤 퀴즈</h1>
-                        
-                        <div className="mb-8">
-                            <h2 className="text-xl md:text-2xl font-semibold text-gray-800 mb-4">{currentQuestion?.question}</h2>
-                        </div>
-
-                        <div className="flex flex-col space-y-4 mb-6">
-                            {currentQuestion?.options.map((option, index) => (
-                                <button
-                                    key={index}
-                                    onClick={() => handleAnswerClick(index)}
-                                    disabled={selectedAnswer !== null}
-                                    className={`
-                                        flex items-center text-left w-full p-4 rounded-lg transition-all duration-200
-                                        ${selectedAnswer === index
-                                            ? (isCorrect ? 'bg-green-100 border-green-500 text-green-700 font-bold shadow-md' : 'bg-red-100 border-red-500 text-red-700 font-bold shadow-md')
-                                            : 'bg-gray-100 hover:bg-gray-200 border-gray-300 text-gray-800 hover:shadow-md'
-                                        }
-                                        ${selectedAnswer !== null && (index + 1).toString().trim() === currentQuestion.answer.trim() ? 'bg-green-100 border-green-500 text-green-700 font-bold shadow-md' : ''}
-                                    `}
-                                >
-                                    <span className="flex-grow">
-                                        {index + 1}. {option}
-                                    </span>
-                                    {selectedAnswer !== null && (
-                                        <span className="ml-4">
-                                            {selectedAnswer === index
-                                                ? (isCorrect ? <Check className="w-6 h-6 text-green-500" /> : <X className="w-6 h-6 text-red-500" />)
-                                                : null
-                                            }
-                                        </span>
-                                    )}
-                                </button>
-                            ))}
-                        </div>
-
-                        {selectedAnswer !== null && (
-                            <div className="mt-8 pt-4 border-t border-gray-200">
-                                <div className={`text-2xl font-bold mb-4 flex items-center justify-center ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
-                                    {isCorrect ? (
-                                        <>정답입니다! 🎉</>
-                                    ) : (
-                                        <>아쉽게도 틀렸습니다. 😞</>
-                                    )}
-                                </div>
-                                <div className="bg-gray-100 border border-gray-300 p-6 rounded-lg text-left shadow-inner">
-                                    <h3 className="text-lg font-semibold text-gray-800 mb-2">해설:</h3>
-                                    <p className="text-gray-600 leading-relaxed">{currentQuestion.explanation}</p>
-                                </div>
-                                <button
-                                    onClick={handleNextQuestion}
-                                    className="mt-6 w-full py-3 px-6 bg-blue-600 text-white font-semibold rounded-full shadow-lg hover:bg-blue-700 transition-all duration-300"
-                                >
-                                    다음 문제
-                                </button>
-                            </div>
-                        )}
+                <div className="quiz-container">
+                    <h1>지식 퀴즈</h1>
+                    <div className="question">{currentQuestion?.question}</div>
+                    <div className="options-container">
+                        {currentQuestion?.options.map((option, index) => (
+                            <button
+                                key={index}
+                                onClick={() => handleAnswerClick(index)}
+                                className={`option-btn ${selectedAnswer !== null ? (index + 1).toString().trim() === currentQuestion.answer.trim() ? 'correct' : (selectedAnswer === index ? 'incorrect' : '') : ''} ${selectedAnswer !== null ? 'disabled' : ''}`}
+                                disabled={selectedAnswer !== null}
+                            >
+                                {option}
+                            </button>
+                        ))}
                     </div>
+
+                    {selectedAnswer !== null && (
+                        <>
+                            <div className="message" style={{color: isCorrect ? '#27ae60' : '#e74c3c'}}>
+                                {isCorrect ? "정답입니다! 🎉" : "오답입니다. 😞"}
+                            </div>
+                            <div className="explanation" style={{
+                                backgroundColor: '#f0f4f7',
+                                border: '2px solid #ddd',
+                                borderRadius: '8px',
+                                padding: '15px',
+                                marginTop: '10px',
+                                textAlign: 'left',
+                                color: '#555'
+                            }}>
+                                <h3 style={{fontSize: '1.2rem', marginBottom: '10px', color: '#333'}}>해설:</h3>
+                                <p>{currentQuestion.explanation}</p>
+                            </div>
+                            <button
+                                onClick={handleNextQuestion}
+                                className="next-btn"
+                                style={{display: 'block', marginTop: '20px'}}
+                            >
+                                다음 문제
+                            </button>
+                        </>
+                    )}
                 </div>
             );
         };
