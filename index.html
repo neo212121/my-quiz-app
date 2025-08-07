@@ -4,36 +4,245 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>랜덤 퀴즈</title>
-    <link rel="stylesheet" href="style.css">
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React and ReactDOM from CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <!-- Babel for JSX compilation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Lucide React Icons -->
+    <script src="https://unpkg.com/lucide-react@0.292.0"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f7f9fc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #333;
+        }
+        .quiz-container {
+            width: 600px;
+            max-width: 90%;
+        }
+    </style>
 </head>
 <body>
+    <div id="root"></div>
 
-    <div class="quiz-container">
-        <h1>랜덤 퀴즈</h1>
-        <div id="quiz-area">
-            <h2 id="question-text">문제가 여기에 나타납니다.</h2>
-            <div id="options-container">
-                <!-- 보기 버튼이 여기에 자동으로 만들어집니다 -->
-            </div>
-        </div>
+    <!-- The React application code -->
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const { Check, X } = lucideReact;
 
-        <div id="result-area" class="hidden">
-            <p id="result-message"></p>
-            <div id="explanation-box">
-                <strong>해설:</strong>
-                <p id="explanation-text"></p>
-            </div>
-            <button id="next-button">다음 문제</button>
-        </div>
-        
-        <div id="quiz-end-area" class="hidden">
-            <h2>퀴즈가 모두 끝났습니다!</h2>
-            <p>맞힌 문제: <span id="correct-count">0</span>개</p>
-            <p>정답률: <span id="accuracy-rate">0</span>%</p>
-            <button id="restart-button">다시 풀기</button>
-        </div>
-    </div>
+        const App = () => {
+            const [allQuestions, setAllQuestions] = useState([]);
+            const [randomQuestions, setRandomQuestions] = useState([]);
+            const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+            const [correctAnswers, setCorrectAnswers] = useState(0);
+            const [quizState, setQuizState] = useState('loading'); // 'loading', 'in-progress', 'showing-result', 'finished'
+            const [selectedAnswer, setSelectedAnswer] = useState(null);
+            const [isCorrect, setIsCorrect] = useState(null);
 
-    <script src="script.js"></script>
+            useEffect(() => {
+                fetch('allQZ.csv')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Failed to load quiz data.');
+                        }
+                        return response.arrayBuffer();
+                    })
+                    .then(buffer => {
+                        const decoder = new TextDecoder('utf-8');
+                        const data = decoder.decode(buffer);
+                        
+                        const parsedQuestions = data.split('\n').map(row => {
+                            const cells = row.split(',');
+                            if (cells.length >= 9) {
+                                return {
+                                    question: cells[1] ? cells[1].trim() : '',
+                                    options: [
+                                        cells[2] ? cells[2].trim() : '', 
+                                        cells[3] ? cells[3].trim() : '', 
+                                        cells[4] ? cells[4].trim() : '', 
+                                        cells[5] ? cells[5].trim() : '', 
+                                        cells[6] ? cells[6].trim() : ''
+                                    ],
+                                    answer: cells[7] ? cells[7].trim() : '',
+                                    explanation: cells[8] ? cells[8].trim() : ''
+                                };
+                            }
+                            return null;
+                        }).filter(item => item !== null && item.question);
+
+                        if (parsedQuestions.length > 0 && parsedQuestions[0].question === "문제") {
+                            parsedQuestions.shift();
+                        }
+
+                        if (parsedQuestions.length < 10) {
+                            setQuizState('error');
+                            return;
+                        }
+
+                        setAllQuestions(parsedQuestions);
+                        startQuiz(parsedQuestions);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching quiz data:', error);
+                        setQuizState('error');
+                    });
+            }, []);
+
+            const startQuiz = (questions) => {
+                const shuffledQuestions = questions.sort(() => 0.5 - Math.random());
+                setRandomQuestions(shuffledQuestions.slice(0, 10));
+                setCurrentQuestionIndex(0);
+                setCorrectAnswers(0);
+                setQuizState('in-progress');
+                setSelectedAnswer(null);
+                setIsCorrect(null);
+            };
+
+            const handleAnswerClick = (index) => {
+                if (selectedAnswer !== null) return;
+
+                const currentQuestion = randomQuestions[currentQuestionIndex];
+                const userIsCorrect = (index + 1).toString().trim() === currentQuestion.answer.trim();
+                
+                setSelectedAnswer(index);
+                setIsCorrect(userIsCorrect);
+
+                if (userIsCorrect) {
+                    setCorrectAnswers(prev => prev + 1);
+                }
+            };
+
+            const handleNextQuestion = () => {
+                setSelectedAnswer(null);
+                setIsCorrect(null);
+                const nextIndex = currentQuestionIndex + 1;
+                if (nextIndex < randomQuestions.length) {
+                    setCurrentQuestionIndex(nextIndex);
+                } else {
+                    setQuizState('finished');
+                }
+            };
+
+            const handleRestartQuiz = () => {
+                startQuiz(allQuestions);
+            };
+
+            const currentQuestion = randomQuestions[currentQuestionIndex];
+
+            if (quizState === 'loading') {
+                return (
+                    <div className="flex justify-center items-center h-screen bg-gray-100">
+                        <div className="text-xl font-semibold text-gray-700">퀴즈를 불러오는 중...</div>
+                    </div>
+                );
+            }
+
+            if (quizState === 'error') {
+                return (
+                    <div className="flex justify-center items-center h-screen bg-gray-100">
+                        <div className="p-8 bg-white rounded-lg shadow-md text-center">
+                            <h2 className="text-2xl font-bold text-red-500 mb-4">오류 발생!</h2>
+                            <p className="text-gray-600">퀴즈 데이터를 불러오지 못했거나 문제가 10개 미만입니다. CSV 파일을 확인해주세요.</p>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (quizState === 'finished') {
+                const totalQuestions = randomQuestions.length;
+                const accuracy = ((correctAnswers / totalQuestions) * 100).toFixed(1);
+                return (
+                    <div className="flex justify-center items-center h-screen bg-gray-100">
+                        <div className="quiz-container max-w-lg mx-auto p-8 bg-white rounded-lg shadow-xl text-center">
+                            <h2 className="text-3xl font-bold text-blue-700 mb-6">퀴즈가 모두 끝났습니다!</h2>
+                            <p className="text-xl text-gray-700 mb-2">맞힌 문제: <span className="text-green-500 font-bold">{correctAnswers}</span>개</p>
+                            <p className="text-xl text-gray-700 mb-6">정답률: <span className="text-blue-500 font-bold">{accuracy}%</span></p>
+                            <button
+                                onClick={handleRestartQuiz}
+                                className="w-full py-3 px-6 bg-blue-600 text-white font-semibold rounded-full shadow-lg hover:bg-blue-700 transition-all duration-300"
+                            >
+                                다시 풀기
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="flex justify-center items-center h-screen bg-gray-100">
+                    <div className="quiz-container max-w-2xl mx-auto p-8 bg-white rounded-lg shadow-xl border border-gray-200">
+                        <h1 className="text-3xl font-bold text-blue-800 mb-6 pb-2 border-b-2 border-blue-500 inline-block">랜덤 퀴즈</h1>
+                        
+                        <div className="mb-8">
+                            <h2 className="text-xl md:text-2xl font-semibold text-gray-800 mb-4">{currentQuestion?.question}</h2>
+                        </div>
+
+                        <div className="flex flex-col space-y-4 mb-6">
+                            {currentQuestion?.options.map((option, index) => (
+                                <button
+                                    key={index}
+                                    onClick={() => handleAnswerClick(index)}
+                                    disabled={selectedAnswer !== null}
+                                    className={`
+                                        flex items-center text-left w-full p-4 rounded-lg transition-all duration-200
+                                        ${selectedAnswer === index
+                                            ? (isCorrect ? 'bg-green-100 border-green-500 text-green-700 font-bold shadow-md' : 'bg-red-100 border-red-500 text-red-700 font-bold shadow-md')
+                                            : 'bg-gray-100 hover:bg-gray-200 border-gray-300 text-gray-800 hover:shadow-md'
+                                        }
+                                        ${selectedAnswer !== null && (index + 1).toString().trim() === currentQuestion.answer.trim() ? 'bg-green-100 border-green-500 text-green-700 font-bold shadow-md' : ''}
+                                    `}
+                                >
+                                    <span className="flex-grow">
+                                        {index + 1}. {option}
+                                    </span>
+                                    {selectedAnswer !== null && (
+                                        <span className="ml-4">
+                                            {selectedAnswer === index
+                                                ? (isCorrect ? <Check className="w-6 h-6 text-green-500" /> : <X className="w-6 h-6 text-red-500" />)
+                                                : null
+                                            }
+                                        </span>
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+
+                        {selectedAnswer !== null && (
+                            <div className="mt-8 pt-4 border-t border-gray-200">
+                                <div className={`text-2xl font-bold mb-4 flex items-center justify-center ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
+                                    {isCorrect ? (
+                                        <>정답입니다! 🎉</>
+                                    ) : (
+                                        <>아쉽게도 틀렸습니다. 😞</>
+                                    )}
+                                </div>
+                                <div className="bg-gray-100 border border-gray-300 p-6 rounded-lg text-left shadow-inner">
+                                    <h3 className="text-lg font-semibold text-gray-800 mb-2">해설:</h3>
+                                    <p className="text-gray-600 leading-relaxed">{currentQuestion.explanation}</p>
+                                </div>
+                                <button
+                                    onClick={handleNextQuestion}
+                                    className="mt-6 w-full py-3 px-6 bg-blue-600 text-white font-semibold rounded-full shadow-lg hover:bg-blue-700 transition-all duration-300"
+                                >
+                                    다음 문제
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
 </body>
 </html>
