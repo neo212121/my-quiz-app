@@ -8,18 +8,21 @@ const nextButton = document.getElementById('next-button');
 const quizEndArea = document.getElementById('quiz-end-area');
 const restartButton = document.getElementById('restart-button');
 
-// 새로 추가된 점수 표시 요소
 const correctCountElement = document.getElementById('correct-count');
 const accuracyRateElement = document.getElementById('accuracy-rate');
 
 let allQuestions = [];
 let currentQuestionIndex = 0;
 let randomQuestions = [];
-let correctAnswers = 0; // 맞힌 문제 수를 저장할 변수
+let correctAnswers = 0; 
 
-// CSV 파일 불러오기
 fetch('allQZ.csv')
-    .then(response => response.arrayBuffer())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Failed to load quiz data.');
+        }
+        return response.arrayBuffer();
+    })
     .then(buffer => {
         const decoder = new TextDecoder('utf-8');
         const data = decoder.decode(buffer);
@@ -43,33 +46,32 @@ fetch('allQZ.csv')
             return null;
         }).filter(item => item !== null);
 
-        // 첫 번째 헤더 행 제거
         if (allQuestions.length > 0 && allQuestions[0].question === "문제") {
             allQuestions.shift();
         }
 
-        if (allQuestions.length === 0) {
-            questionText.textContent = "퀴즈 데이터를 불러오지 못했습니다. CSV 파일을 확인해주세요.";
+        if (allQuestions.length < 10) {
+            questionText.textContent = "퀴즈 데이터를 불러오지 못했거나 문제가 부족합니다. CSV 파일을 확인해주세요.";
             return;
         }
 
         startQuiz();
+    })
+    .catch(error => {
+        questionText.textContent = `데이터를 불러오는 중 오류 발생: ${error.message}`;
+        console.error('Error fetching quiz data:', error);
     });
 
 function startQuiz() {
     const shuffledQuestions = allQuestions.sort(() => 0.5 - Math.random());
     randomQuestions = shuffledQuestions.slice(0, 10);
     currentQuestionIndex = 0;
-    correctAnswers = 0; // 퀴즈 시작 시 점수 초기화
+    correctAnswers = 0;
     showQuestion();
 }
 
 function showQuestion() {
     const currentQuestion = randomQuestions[currentQuestionIndex];
-    if (!currentQuestion) {
-        questionText.textContent = "퀴즈 문제가 부족합니다. 엑셀 파일에 10개 이상의 문제가 있는지 확인해주세요.";
-        return;
-    }
     questionText.textContent = currentQuestion.question;
     optionsContainer.innerHTML = '';
     currentQuestion.options.forEach((option, index) => {
@@ -84,19 +86,17 @@ function showQuestion() {
 }
 
 function checkAnswer(selectedButton, selectedOptionIndex, question) {
-    // 디버깅을 위해 콘솔에 정답과 선택한 답을 출력합니다.
-    console.log("정답:", question.answer);
-    console.log("선택한 답:", selectedOptionIndex.toString());
+    const isCorrect = (selectedOptionIndex.toString().trim() === question.answer.trim());
     
-    const isCorrect = (selectedOptionIndex.toString() === question.answer);
     Array.from(optionsContainer.children).forEach(button => {
         button.disabled = true;
     });
+
     if (isCorrect) {
         selectedButton.classList.add('correct');
         resultMessage.textContent = '정답입니다! 🎉';
         resultMessage.classList.add('correct');
-        correctAnswers++; // 정답 시 점수 증가
+        correctAnswers++;
     } else {
         selectedButton.classList.add('incorrect');
         resultMessage.textContent = '아쉽게도 틀렸습니다. 😞';
@@ -114,11 +114,10 @@ nextButton.addEventListener('click', () => {
         quizArea.classList.add('hidden');
         resultArea.classList.add('hidden');
         
-        // 퀴즈 종료 시 점수와 정답률 계산 및 표시
         const totalQuestions = randomQuestions.length;
         const accuracy = (correctAnswers / totalQuestions) * 100;
         correctCountElement.textContent = correctAnswers;
-        accuracyRateElement.textContent = accuracy.toFixed(1); // 소수점 첫째 자리까지 표시
+        accuracyRateElement.textContent = accuracy.toFixed(1);
         
         quizEndArea.classList.remove('hidden');
     }

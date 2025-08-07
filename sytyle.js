@@ -1,6 +1,6 @@
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f0f2f5;
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f7f9fc;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -11,69 +11,71 @@ body {
 
 .quiz-container {
     background-color: #ffffff;
-    padding: 40px;
+    padding: 2.5rem;
     border-radius: 12px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
-    width: 650px;
+    box-shadow: 0 15px 45px rgba(0, 0, 0, 0.1);
+    width: 600px;
     max-width: 90%;
     text-align: center;
+    border: 1px solid #e0e6ed;
 }
 
 h1 {
-    font-size: 2em;
-    color: #2c3e50;
-    margin-bottom: 25px;
-    border-bottom: 2px solid #3498db;
+    font-size: 2.2rem;
+    color: #1e3a8a;
+    margin-bottom: 1.5rem;
+    border-bottom: 3px solid #3b82f6;
     display: inline-block;
-    padding-bottom: 8px;
+    padding-bottom: 0.5rem;
 }
 
 #question-text {
-    font-size: 1.5em; /* 문제 글자 크기 */
-    color: #34495e;
-    min-height: 80px;
-    margin: 30px 0;
-    line-height: 1.5;
-    font-weight: bold;
+    font-size: 1.6rem;
+    color: #1f2937;
+    min-height: 5rem;
+    margin: 2rem 0;
+    line-height: 1.6;
+    font-weight: 600;
 }
 
-/* 퀴즈 보기 버튼들이 세로로 나열되도록 설정 */
 #options-container {
     display: flex;
     flex-direction: column;
-    gap: 15px;
-    margin-top: 25px;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
 }
 
 .option-button {
-    background-color: #ecf0f1;
-    border: 1px solid #bdc3c7;
+    background-color: #f0f4f8;
+    border: 1px solid #d1d5db;
     border-radius: 8px;
-    padding: 15px 20px;
-    font-size: 1.2em; /* 보기 글자 크기를 문제와 비슷하게 키움 */
+    padding: 1rem 1.25rem;
+    font-size: 1.2rem;
     cursor: pointer;
-    transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
+    transition: all 0.3s ease-in-out;
     text-align: left;
-    color: #34495e;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    color: #4b5563;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
 .option-button:hover {
-    background-color: #e0e6e9;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: #e5e7eb;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
 }
 
 .option-button.correct {
-    background-color: #2ecc71;
-    border-color: #27ae60;
-    color: white;
+    background-color: #dcfce7;
+    border-color: #4ade80;
+    color: #166534;
+    font-weight: 600;
 }
 
 .option-button.incorrect {
-    background-color: #e74c3c;
-    border-color: #c0392b;
-    color: white;
+    background-color: #fee2e2;
+    border-color: #f87171;
+    color: #991b1b;
+    font-weight: 600;
 }
 
 .hidden {
@@ -81,87 +83,90 @@ h1 {
 }
 
 #result-area {
-    margin-top: 30px;
-    padding-top: 20px;
-    border-top: 1px solid #ecf0f1;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e5e7eb;
 }
 
 #result-message {
-    font-size: 1.6em;
+    font-size: 1.6rem;
     font-weight: bold;
-    margin-bottom: 15px;
+    margin-bottom: 1rem;
     transition: color 0.3s;
 }
 
-/* 정답 메시지 색상을 녹색으로 설정 */
 #result-message.correct {
-    color: #2ecc71;
+    color: #16a34a;
 }
 
-/* 오답 메시지 색상을 붉은색으로 설정 */
 #result-message.incorrect {
-    color: #e74c3c;
+    color: #ef4444;
 }
 
 #explanation-box {
-    background-color: #f8f9fa;
-    padding: 20px;
+    background-color: #f1f5f9;
+    padding: 1.5rem;
     border-radius: 8px;
     text-align: left;
-    margin-top: 15px;
-    border-left: 4px solid #3498db;
+    margin-top: 1rem;
+    border-left: 4px solid #3b82f6;
     line-height: 1.6;
+    color: #4b5563;
 }
 
 #next-button, #restart-button {
-    padding: 12px 30px;
-    font-size: 1.1em;
-    background-color: #3498db;
+    padding: 0.75rem 2rem;
+    font-size: 1.1rem;
+    background-color: #3b82f6;
     color: white;
     border: none;
     border-radius: 50px;
     cursor: pointer;
-    transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
-    margin-top: 25px;
+    transition: all 0.3s ease-in-out;
+    margin-top: 1.5rem;
+    font-weight: 600;
 }
 
 #next-button:hover, #restart-button:hover {
-    background-color: #2980b9;
+    background-color: #2563eb;
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
 #quiz-end-area {
-    margin-top: 30px;
+    margin-top: 2rem;
 }
 
+#quiz-end-area h2 {
+    font-size: 1.8rem;
+    color: #1e3a8a;
+}
 #quiz-end-area p {
-    font-size: 1.2em;
-    margin: 10px 0;
+    font-size: 1.2rem;
+    margin: 1rem 0;
 }
 #quiz-end-area #correct-count {
-    color: #2ecc71;
+    color: #16a34a;
     font-weight: bold;
 }
 #quiz-end-area #accuracy-rate {
-    color: #3498db;
+    color: #3b82f6;
     font-weight: bold;
 }
 
-/* 모바일 화면에 대한 반응형 디자인 */
 @media (max-width: 768px) {
     .quiz-container {
-        padding: 20px;
+        padding: 1.5rem;
     }
     h1 {
-        font-size: 1.8em;
+        font-size: 1.8rem;
     }
     #question-text {
-        font-size: 1.3em;
-        min-height: 60px;
+        font-size: 1.4rem;
+        min-height: 4rem;
     }
     .option-button {
-        font-size: 1em;
-        padding: 12px 15px;
+        font-size: 1.1rem;
+        padding: 0.75rem 1rem;
     }
 }
