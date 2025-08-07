@@ -84,6 +84,10 @@ function showQuestion() {
 }
 
 function checkAnswer(selectedButton, selectedOptionIndex, question) {
+    // 디버깅을 위해 콘솔에 정답과 선택한 답을 출력합니다.
+    console.log("정답:", question.answer);
+    console.log("선택한 답:", selectedOptionIndex.toString());
+    
     const isCorrect = (selectedOptionIndex.toString() === question.answer);
     Array.from(optionsContainer.children).forEach(button => {
         button.disabled = true;
