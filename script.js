@@ -10,63 +10,70 @@ let allQuestions = [];
 let currentQuestionIndex = 0;
 let randomQuestions = [];
 
-// 1단계: CSV 파일을 불러와서 읽습니다.
+// 수정된 코드 시작
 fetch('allQZ.csv')
-    .then(response => response.text())
-    .then(data => {
-        // CSV 내용을 줄 단위로 나누고, 각 줄을 쉼표로 나눠서 문제 데이터로 만듭니다.
-        // 첫 번째 줄은 제목이므로 건너뜁니다.
-        allQuestions = data.split('\n').slice(1).map(row => {
+    .then(response => response.arrayBuffer()) // 파일을 텍스트 대신 바이너리 데이터로 가져옵니다.
+    .then(buffer => {
+        // TextDecoder를 사용하여 바이너리 데이터를 UTF-8 텍스트로 변환합니다.
+        const decoder = new TextDecoder('utf-8');
+        const data = decoder.decode(buffer);
+        
+        // CSV 데이터 파싱
+        allQuestions = data.split('\n').map(row => {
             const cells = row.split(',');
-            // B셀(문제), C~G셀(보기), H셀(정답), I셀(해설)을 가져옵니다.
-            return {
-                question: cells[1],
-                options: [cells[2], cells[3], cells[4], cells[5], cells[6]],
-                answer: cells[7],
-                explanation: cells[8]
-            };
-        });
+            // CSV 파일의 마지막 줄에 빈 줄이 있을 수 있으므로, 유효한 데이터만 처리합니다.
+            if (cells[1] && cells[2]) {
+                 return {
+                    question: cells[1].trim(),
+                    options: [
+                        cells[2].trim(), 
+                        cells[3].trim(), 
+                        cells[4].trim(), 
+                        cells[5].trim(), 
+                        cells[6].trim()
+                    ],
+                    answer: cells[7].trim(),
+                    explanation: cells[8] ? cells[8].trim() : ''
+                };
+            }
+            return null;
+        }).filter(item => item !== null); // null 값(빈 줄) 제거
+
+        // 첫 번째 헤더 행은 문제 데이터가 아니므로 제거
+        if (allQuestions.length > 0 && allQuestions[0].question === "문제") {
+            allQuestions.shift();
+        }
+
         startQuiz();
     });
 
-// 2단계: 퀴즈를 시작하고 10개의 문제를 랜덤으로 고릅니다.
+// (아래의 startQuiz, showQuestion, checkAnswer, nextButton 이벤트 리스너 코드는 그대로 유지)
 function startQuiz() {
-    // 전체 문제 중에서 10개를 무작위로 선택합니다.
     const shuffledQuestions = allQuestions.sort(() => 0.5 - Math.random());
     randomQuestions = shuffledQuestions.slice(0, 10);
     currentQuestionIndex = 0;
     showQuestion();
 }
 
-// 3단계: 현재 문제를 화면에 보여줍니다.
 function showQuestion() {
     const currentQuestion = randomQuestions[currentQuestionIndex];
     questionText.textContent = currentQuestion.question;
-    optionsContainer.innerHTML = ''; // 이전 보기들을 모두 지웁니다.
-
+    optionsContainer.innerHTML = '';
     currentQuestion.options.forEach((option, index) => {
         const optionButton = document.createElement('button');
         optionButton.textContent = option;
         optionButton.classList.add('option-button');
-        
-        // 버튼을 클릭했을 때 정답을 확인하는 기능을 추가합니다.
         optionButton.addEventListener('click', () => checkAnswer(optionButton, index + 1, currentQuestion));
         optionsContainer.appendChild(optionButton);
     });
-
-    resultArea.classList.add('hidden'); // 결과 영역을 숨깁니다.
+    resultArea.classList.add('hidden');
 }
 
-// 4단계: 사용자가 선택한 답이 맞는지 확인합니다.
 function checkAnswer(selectedButton, selectedOptionIndex, question) {
-    const isCorrect = (selectedOptionIndex.toString() === question.answer.trim());
-    
-    // 모든 보기 버튼을 클릭할 수 없게 만듭니다.
+    const isCorrect = (selectedOptionIndex.toString() === question.answer);
     Array.from(optionsContainer.children).forEach(button => {
         button.disabled = true;
     });
-
-    // 정답인지 오답인지에 따라 버튼 색상을 바꿔줍니다.
     if (isCorrect) {
         selectedButton.classList.add('correct');
         resultMessage.textContent = '정답입니다! 🎉';
@@ -74,19 +81,16 @@ function checkAnswer(selectedButton, selectedOptionIndex, question) {
         selectedButton.classList.add('incorrect');
         resultMessage.textContent = '아쉽게도 틀렸습니다. 😞';
     }
-
-    // 해설을 보여줍니다.
     explanationText.textContent = question.explanation;
     resultArea.classList.remove('hidden');
 }
 
-// 5단계: 다음 문제로 넘어가는 버튼의 기능을 추가합니다.
 nextButton.addEventListener('click', () => {
     currentQuestionIndex++;
     if (currentQuestionIndex < randomQuestions.length) {
-        showQuestion(); // 다음 문제가 있으면 보여줍니다.
+        showQuestion();
     } else {
         alert('퀴즈 10문제가 모두 끝났습니다! 다시 시작할게요.');
-        startQuiz(); // 퀴즈가 끝나면 다시 시작합니다.
+        startQuiz();
     }
 });
